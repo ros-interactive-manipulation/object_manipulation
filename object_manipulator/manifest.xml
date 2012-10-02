@@ -32,6 +32,9 @@
 
   <!--depend package="profiling"/-->
 
+  <rosdep name="python" />
+  <rosdep name="python-scipy" />
+
   <export>
     <cpp cflags="`pkg-config --cflags eigen3` -I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lobject_manipulator_tools -lobject_manipulator_grasp_execution -lobject_manipulator_place_execution"/>
   </export>
