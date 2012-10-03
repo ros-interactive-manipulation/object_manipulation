@@ -1,0 +1,11 @@
+build
+bin
+lib
+*.pyc
+*~
+msg_gen
+srv_gen
+*Feedback.msg
+*Action.msg
+*Goal.msg
+*Result.msg
