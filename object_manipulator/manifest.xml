@@ -13,6 +13,7 @@
   <depend package="roscpp"/>
   <depend package="rospy"/>
   <depend package="tf"/>
+  <depend package="pluginlib"/>
   <depend package="std_srvs"/>
   <depend package="actionlib"/>
   <depend package="object_manipulation_msgs"/>  
