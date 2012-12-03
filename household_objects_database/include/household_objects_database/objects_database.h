@@ -46,7 +46,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 
-#include <arm_navigation_msgs/Shape.h>
+#include <shape_msgs/Mesh.h>
 
 #include <household_objects_database_msgs/DatabaseScan.h>
 
@@ -235,13 +235,13 @@ namespace household_objects_database
 
     //! Gets the mesh for a scaled model as a arm_navigation_msgs::Shape
     bool
-    getScaledModelMesh (int scaled_model_id, arm_navigation_msgs::Shape &shape) const
+    getScaledModelMesh (int scaled_model_id, shape_msgs::Mesh &ros_mesh) const
     {
       DatabaseMesh mesh;
       if (!getScaledModelMesh (scaled_model_id, mesh))
         return false;
-      shape.triangles = mesh.triangles_.data ();
-      shape.vertices.clear ();
+
+      ros_mesh.vertices.clear ();
       if (mesh.vertices_.data ().size () % 3 != 0)
       {
         ROS_ERROR ("Get scaled model mesh: size of vertices vector is not a multiple of 3");
@@ -253,9 +253,23 @@ namespace household_objects_database
         p.x = mesh.vertices_.data ().at (3 * i + 0);
         p.y = mesh.vertices_.data ().at (3 * i + 1);
         p.z = mesh.vertices_.data ().at (3 * i + 2);
-        shape.vertices.push_back (p);
+        ros_mesh.vertices.push_back (p);
       }
-      shape.type = shape.MESH;
+
+      ros_mesh.triangles.clear ();
+      if (mesh.triangles_.data ().size () % 3 != 0)
+      {
+        ROS_ERROR ("Get scaled model mesh: size of triangles vector is not a multiple of 3");
+        return false;
+      }
+      for (size_t i = 0; i < mesh.triangles_.data ().size () / 3; i++)
+      {
+        shape_msgs::MeshTriangle triangle;
+        triangle.vertex_indices[0] = mesh.triangles_.data ().at (3 * i + 0);
+        triangle.vertex_indices[1] = mesh.triangles_.data ().at (3 * i + 1);
+        triangle.vertex_indices[2] = mesh.triangles_.data ().at (3 * i + 2);
+        ros_mesh.triangles.push_back (triangle);
+      }
       return true;
     }
 

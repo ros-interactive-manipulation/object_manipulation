@@ -10,7 +10,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/household_objects_database_msgs</url>
 
-  <depend package="arm_navigation_msgs"/>
+  <depend package="shape_msgs"/>
   <depend package="geometry_msgs"/>
   <depend package="sensor_msgs"/>
 
