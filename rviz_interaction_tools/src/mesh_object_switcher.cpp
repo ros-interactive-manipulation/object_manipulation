@@ -35,6 +35,7 @@
 #include <OGRE/OgrePass.h>
 #include <OGRE/OgreEdgeListBuilder.h>
 
+#include <ros/ros.h>
 
 namespace rviz_interaction_tools
 {

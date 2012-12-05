@@ -15,7 +15,7 @@
   <depend package="sensor_msgs"/> <!-- PointCloud, CameraInfo, Image -->
   <depend package="stereo_msgs"/> <!-- DisparityImage -->
   <depend package="geometry_msgs"/> <!-- Pose -->
-  <depend package="arm_navigation_msgs"/> <!-- mesh -->
+  <depend package="shape_msgs"/> <!-- mesh -->
 
   <export>
     <cpp cflags="-I${prefix}/include" lflags="-Wl,-rpath,${prefix}/lib -L${prefix}/lib -lrviz_interaction_tools"/>
