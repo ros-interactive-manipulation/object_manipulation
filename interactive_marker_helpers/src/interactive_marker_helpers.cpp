@@ -619,9 +619,9 @@ visualization_msgs::InteractiveMarker makeGraspMarker( const char * name, const 
   marker.type = visualization_msgs::Marker::ARROW;
   //marker.header = int_marker.header;
   //marker.pose = int_marker.pose;
-  marker.scale.x = 0.10*scale;
-  marker.scale.y = 0.05*scale;
-  marker.scale.z = 0.05*scale;
+  marker.scale.x = 0.025*scale;
+  marker.scale.y = 0.0025*scale;
+  marker.scale.z = 0.0025*scale;
   marker.color.r = 1.0;
   marker.color.a = 1.0;
   control.markers.push_back(marker);
