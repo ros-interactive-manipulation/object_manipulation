@@ -1,0 +1,53 @@
+<package>
+  <name>object_manipulation_msgs</name>
+  <version>0.7.0</version>
+  <description>Generic messages for pickup and place functionality. The messages
+    contained here define a complete interface for pickup and place
+    tasks. 
+
+    Note that for some of the general services and actions defined
+    here, robot-specific implementations might exist elsewhere and be
+    used at run time.</description>
+  <maintainer email="matei@willowgarage.com">Matei Ciocarlie</maintainer>
+
+  <license>BSD</license>
+
+  <url type="website">http://ros.org/wiki/object_manipulation_msgs</url>
+
+  <author>Matei Ciocarlie</author>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>actionlib_msgs</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>household_objects_database_msgs</build_depend>
+  <build_depend>arm_navigation_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
+
+  <run_depend>actionlib_msgs</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>household_objects_database_msgs</run_depend>
+  <run_depend>arm_navigation_msgs</run_depend>
+  <run_depend>message_runtime</run_depend>
+
+  <test_depend>actionlib_msgs</test_depend>
+  <test_depend>std_msgs</test_depend>
+  <test_depend>geometry_msgs</test_depend>
+  <test_depend>sensor_msgs</test_depend>
+  <test_depend>trajectory_msgs</test_depend>
+  <test_depend>sensor_msgs</test_depend>
+  <test_depend>household_objects_database_msgs</test_depend>
+  <test_depend>arm_navigation_msgs</test_depend>
+
+  <export>
+    <cpp cflags="-I${prefix}/include"/>
+  </export>
+</package>
