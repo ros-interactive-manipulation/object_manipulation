@@ -11,7 +11,7 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/household_objects_database</url>
 
-  <depend package="database_interface"/>
+  <depend package="sql_database"/>
   <depend package="roscpp"/>
   <depend package="tf"/>
   <depend package="actionlib"/>
