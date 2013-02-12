@@ -88,13 +88,10 @@ void MeshObject::setPose( const geometry_msgs::Pose& pose )
   scene_node_->setOrientation( pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z );
 }
 
-void MeshObject::loadMesh( std::string name, const arm_navigation_msgs::Shape& mesh )
+void MeshObject::loadMesh( std::string name, const shape_msgs::Mesh& mesh )
 {
-  ROS_ASSERT(mesh.triangles.size() % 3 == 0);
-  ROS_ASSERT(mesh.triangles.size() > 0);
-  ROS_ASSERT(mesh.vertices.size() > 0);
-
-  ROS_INFO_STREAM( "Loading mesh. name='" << name << "'" );
+  assert(mesh.triangles.size() > 0);
+  assert(mesh.vertices.size() > 0);
 
   //create ogre object
   Ogre::ManualObject *manual_object = new Ogre::ManualObject( name );
@@ -117,14 +114,15 @@ void MeshObject::loadMesh( std::string name, const arm_navigation_msgs::Shape& m
   }
 
   //add triangles
-  size_t num_t = mesh.triangles.size();
-  for ( size_t t=0; t+2<num_t; t+=3 )
+  for ( size_t t=0; t<mesh.triangles.size(); t++ )
   {
-    assert( (size_t)mesh.triangles[t] < mesh.vertices.size() );
-    assert( (size_t)mesh.triangles[t+1] < mesh.vertices.size() );
-    assert( (size_t)mesh.triangles[t+2] < mesh.vertices.size() );
+    assert( (size_t)mesh.triangles[t].vertex_indices[0] < mesh.vertices.size() );
+    assert( (size_t)mesh.triangles[t].vertex_indices[1] < mesh.vertices.size() );
+    assert( (size_t)mesh.triangles[t].vertex_indices[2] < mesh.vertices.size() );
 
-    manual_object->triangle( mesh.triangles[t+2], mesh.triangles[t+1], mesh.triangles[t] );
+    manual_object->triangle( mesh.triangles[t].vertex_indices[2],
+                             mesh.triangles[t].vertex_indices[1],
+                             mesh.triangles[t].vertex_indices[0] );
   }
 
   manual_object->end();
@@ -167,7 +165,7 @@ void MeshObject::loadPoints( std::string name, const std::vector< geometry_msgs:
 void MeshObject::loadMesh( std::string name, const std::vector< Point > &vertices,
     const std::vector<unsigned> triangles )
 {
-  ROS_ASSERT(vertices.size() > 0);
+  assert(vertices.size() > 0);
 
   //create ogre object
   Ogre::ManualObject *manual_object = new Ogre::ManualObject( name );

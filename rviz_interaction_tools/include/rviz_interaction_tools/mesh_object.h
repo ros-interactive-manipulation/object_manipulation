@@ -30,7 +30,7 @@
 #ifndef MESH_OBJECT_CPP_
 #define MESH_OBJECT_CPP_
 
-#include <arm_navigation_msgs/Shape.h>
+#include <shape_msgs/Mesh.h>
 #include <geometry_msgs/Pose.h>
 #include <geometry_msgs/Point32.h>
 
@@ -59,7 +59,7 @@ public:
 
   void setPose( const geometry_msgs::Pose& pose );
 
-  void loadMesh( std::string name, const arm_navigation_msgs::Shape& mesh );
+  void loadMesh( std::string name, const shape_msgs::Mesh& mesh );
 
   //load mesh from a list of points, assuming that 3 consecutive points form a triangle
   void loadPoints( std::string name, const std::vector< geometry_msgs::Point32 > &points );
