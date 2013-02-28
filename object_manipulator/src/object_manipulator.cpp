@@ -45,13 +45,6 @@
 
 #include <object_manipulation_msgs/tools.h>
 
-//old style executors
-#include "object_manipulator/grasp_execution/grasp_executor_with_approach.h"
-#include "object_manipulator/grasp_execution/reactive_grasp_executor.h"
-#include "object_manipulator/grasp_execution/unsafe_grasp_executor.h"
-#include "object_manipulator/place_execution/place_executor.h"
-
-//new style executors
 #include "object_manipulator/grasp_execution/approach_lift_grasp.h"
 #include "object_manipulator/grasp_execution/grasp_tester_fast.h"
 #include "object_manipulator/place_execution/descend_retreat_place.h"
@@ -89,15 +82,6 @@ ObjectManipulator::ObjectManipulator() :
     marker_pub_ = new GraspMarkerPublisher();
   }
 
-  //old style executors
-  grasp_executor_with_approach_ = new GraspExecutorWithApproach(marker_pub_);
-  reactive_grasp_executor_ = new ReactiveGraspExecutor(marker_pub_);
-  unsafe_grasp_executor_ = new UnsafeGraspExecutor(marker_pub_);
-  place_executor_ = new PlaceExecutor(marker_pub_);
-  reactive_place_executor_ = new ReactivePlaceExecutor(marker_pub_);
-
-  //new syle executors
-  
   grasp_tester_with_approach_ = new GraspTesterWithApproach;
   grasp_tester_with_approach_->setMarkerPublisher(marker_pub_);
   grasp_tester_fast_ = new GraspTesterFast;
@@ -138,14 +122,6 @@ ObjectManipulator::~ObjectManipulator()
 {
   delete marker_pub_;
 
-  //old style executors
-  delete grasp_executor_with_approach_;
-  delete reactive_grasp_executor_;
-  delete unsafe_grasp_executor_;
-  delete place_executor_;
-  delete reactive_place_executor_;
-
-  //new style executors
   delete grasp_tester_fast_;
   delete grasp_tester_with_approach_;
   delete unsafe_grasp_tester_;

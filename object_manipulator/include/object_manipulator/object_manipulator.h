@@ -48,16 +48,10 @@
 
 namespace object_manipulator{
 
-class PlaceExecutor;
-class ReactivePlaceExecutor;
-class ReactiveGraspExecutor;
-class GraspExecutorWithApproach;
-class UnsafeGraspExecutor;
 class GraspMarkerPublisher;
 
-class GraspTesterFast;
-
 class GraspTester;
+class GraspTesterFast;
 class GraspPerformer;
 class PlaceTester;
 class PlacePerformer;
@@ -153,21 +147,6 @@ private:
   PlaceTester* standard_place_tester_;
   PlacePerformer* standard_place_performer_;
   PlacePerformer* reactive_place_performer_;
-
-  //! Instance of the grasp executor with approach
-  GraspExecutorWithApproach* grasp_executor_with_approach_;
-
-  //! Instance of the reactive grasp executor
-  ReactiveGraspExecutor* reactive_grasp_executor_;
-
-  //! Instance of the executor used for grasping without considering collisions
-  UnsafeGraspExecutor* unsafe_grasp_executor_;
-
-  //! Instance of the executor used for placing objects
-  PlaceExecutor* place_executor_;
-
-  //! Instance of the executor used for reactive placing of objects
-  ReactivePlaceExecutor* reactive_place_executor_;
 
   //! The name of the service to be used by default for grasp planning on database objects
   std::string default_database_planner_;

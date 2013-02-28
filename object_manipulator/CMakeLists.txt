@@ -50,16 +50,10 @@ rosbuild_add_library(${PROJECT_NAME}_tools src/tools/mechanism_interface.cpp
 rosbuild_link_boost(${PROJECT_NAME}_tools thread)
 
 rosbuild_add_library(${PROJECT_NAME}_grasp_execution src/tools/mechanism_interface.cpp
-						     src/grasp_execution/grasp_executor.cpp
-                                                     src/grasp_execution/simple_grasp_executor.cpp
-                                                     src/grasp_execution/grasp_executor_with_approach.cpp
                                                      src/grasp_execution/grasp_tester_fast.cpp
-                                                     src/grasp_execution/reactive_grasp_executor.cpp
-                                                     src/grasp_execution/unsafe_grasp_executor.cpp 
 						     src/grasp_execution/approach_lift_grasp.cpp)
 						   
-rosbuild_add_library(${PROJECT_NAME}_place_execution src/place_execution/place_executor.cpp
-                                                     src/place_execution/descend_retreat_place.cpp
+rosbuild_add_library(${PROJECT_NAME}_place_execution src/place_execution/descend_retreat_place.cpp
                                                      src/place_execution/place_tester_fast.cpp)
 target_link_libraries(${PROJECT_NAME}_grasp_execution ${PROJECT_NAME}_tools)
 target_link_libraries(${PROJECT_NAME}_place_execution ${PROJECT_NAME}_tools)
