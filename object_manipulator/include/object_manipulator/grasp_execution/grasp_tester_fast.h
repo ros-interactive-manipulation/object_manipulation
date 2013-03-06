@@ -75,7 +75,7 @@ class GraspTesterFast : public GraspTester
 {
 protected:
   virtual void testGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                         const object_manipulation_msgs::Grasp &grasp,
+                         const manipulation_msgs::Grasp &grasp,
                          GraspExecutionInfo &execution_info);  
   
   //! Dynamic link padding to be used for grasp operation
@@ -130,7 +130,7 @@ protected:
                      std::vector<std::string>& group_links);
 
   virtual void testGrasps(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                          const std::vector<object_manipulation_msgs::Grasp> &grasps,
+                          const std::vector<manipulation_msgs::Grasp> &grasps,
                           std::vector<GraspExecutionInfo> &execution_info,
                           bool return_on_first_hit);
 };

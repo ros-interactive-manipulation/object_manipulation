@@ -53,7 +53,6 @@
 #include "object_manipulator/tools/grasp_marker_publisher.h"
 #include "object_manipulator/tools/exceptions.h"
 
-using object_manipulation_msgs::GraspableObject;
 using object_manipulation_msgs::PickupGoal;
 using object_manipulation_msgs::PickupResult;
 using object_manipulation_msgs::PickupFeedback;
@@ -65,8 +64,9 @@ using object_manipulation_msgs::GraspResult;
 using object_manipulation_msgs::PlaceLocationResult;
 using object_manipulation_msgs::getGraspResultInfo;
 using object_manipulation_msgs::getPlaceLocationResultInfo;
-using object_manipulation_msgs::Grasp;
-using object_manipulation_msgs::GraspPlanningAction;
+using manipulation_msgs::Grasp;
+using manipulation_msgs::GraspPlanningAction;
+using manipulation_msgs::GraspableObject;
 
 namespace object_manipulator {
 
@@ -145,14 +145,14 @@ void ObjectManipulator::graspFeedback(
 }
 
 void ObjectManipulator::graspPlanningFeedbackCallback(
-                                             const object_manipulation_msgs::GraspPlanningFeedbackConstPtr &feedback)
+                                             const manipulation_msgs::GraspPlanningFeedbackConstPtr &feedback)
 {
   ROS_DEBUG_STREAM_NAMED("manipulation", "Feedback from planning action, total grasps: " << feedback->grasps.size());
   grasp_container_.addGrasps(feedback->grasps);
 }
 
 void ObjectManipulator::graspPlanningDoneCallback(const actionlib::SimpleClientGoalState& state,
-                                             const object_manipulation_msgs::GraspPlanningResultConstPtr &result)
+                                             const manipulation_msgs::GraspPlanningResultConstPtr &result)
 {
   if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
   {
@@ -217,7 +217,7 @@ void ObjectManipulator::pickup(const PickupGoal::ConstPtr &pickup_goal,
     }
 
     //call the planner action, which will populate the grasp container as feedback arrives
-    object_manipulation_msgs::GraspPlanningGoal goal;
+    manipulation_msgs::GraspPlanningGoal goal;
     goal.arm_name = pickup_goal->arm_name;
     goal.target = pickup_goal->target;
     goal.collision_object_name = pickup_goal->collision_object_name;
@@ -296,7 +296,7 @@ void ObjectManipulator::pickup(const PickupGoal::ConstPtr &pickup_goal,
       if (action_server->isPreemptRequested()) throw InterruptRequestedException();
 
       ROS_DEBUG_STREAM_NAMED("manipulation", "Object manipulator: getting grasps beyond " << tested_grasps);
-      std::vector<object_manipulation_msgs::Grasp> new_grasps = grasp_container_.getGrasps(tested_grasps);
+      std::vector<manipulation_msgs::Grasp> new_grasps = grasp_container_.getGrasps(tested_grasps);
       if ( new_grasps.empty() )
       { 
         if ( using_planner_action && (grasp_planning_actions_.client(planner_action).getState() == 

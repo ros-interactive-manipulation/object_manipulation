@@ -64,7 +64,7 @@ namespace object_manipulator {
     }
 
     void visualize_grasps(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                          const std::vector<object_manipulation_msgs::Grasp> &grasps,
+                          const std::vector<manipulation_msgs::Grasp> &grasps,
                           const std::vector<GraspExecutionInfo> &execution_info,
                           ros::Publisher &vis_marker_publisher) {
         /* display markers for all of the grasps */
@@ -109,8 +109,8 @@ namespace object_manipulator {
 
             visualization_msgs::Marker marker;
 
-            marker.pose = grasps[i].grasp_pose;
-            marker.header.frame_id = pickup_goal.target.reference_frame_id;
+            marker.pose = grasps[i].grasp_pose.pose;
+            marker.header.frame_id = grasps[i].grasp_pose.header.frame_id;
             marker.header.stamp = ros::Time::now();
             std::ostringstream marker_ns;
             marker_ns << "grasp " << i << " (" << execution_info[i].result_.result_code << ")";
@@ -278,11 +278,11 @@ namespace object_manipulator {
     /* this doesn't get called since testGrasps() does everything, but we still need to have
    this function since it is pure virtual in the base class */
     void GraspTesterFast::testGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                    const object_manipulation_msgs::Grasp &grasp,
+                                    const manipulation_msgs::Grasp &grasp,
                                     GraspExecutionInfo &execution_info)  {}
 
     void GraspTesterFast::testGrasps(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                     const std::vector<object_manipulation_msgs::Grasp> &grasps,
+                                     const std::vector<manipulation_msgs::Grasp> &grasps,
                                      std::vector<GraspExecutionInfo> &execution_info,
                                      bool return_on_first_hit)
 
@@ -393,7 +393,7 @@ namespace object_manipulator {
                 if(!cm->convertPoseGivenWorldTransform(*state,
                                                        cm->getWorldFrameId(),
                                                        target_header,
-                                                       grasps[i].grasp_pose,
+                                                       grasps[i].grasp_pose.pose,
                                                        grasp_world_pose_stamped)) {
                     ROS_WARN_STREAM("Can't convert into non-object frame " << target_header.frame_id);
                     continue;
@@ -401,7 +401,7 @@ namespace object_manipulator {
                 tf::poseMsgToTF(grasp_world_pose_stamped.pose, grasp_poses[i]);
             } else {
                 tf::Transform gp;
-                tf::poseMsgToTF(grasps[i].grasp_pose, gp);
+                tf::poseMsgToTF(grasps[i].grasp_pose.pose, gp);
                 grasp_poses[i] = obj_pose*gp;
             }
             state->updateKinematicStateWithLinkAt(handDescription().gripperFrame(pickup_goal.arm_name),grasp_poses[i]);
@@ -468,7 +468,7 @@ namespace object_manipulator {
             }
             state->setKinematicState(pre_grasp_joint_vals);
 
-            tf::Vector3 distance_pregrasp_dir = pregrasp_dir * fabs(grasps[0].desired_approach_distance);
+            tf::Vector3 distance_pregrasp_dir = pregrasp_dir * fabs(grasps[0].approach.desired_distance);
             tf::Transform pre_grasp_trans(tf::Quaternion(0,0,0,1.0), distance_pregrasp_dir);
             tf::Transform pre_grasp_pose = grasp_poses[i]*pre_grasp_trans;
             state->updateKinematicStateWithLinkAt(handDescription().gripperFrame(pickup_goal.arm_name),pre_grasp_pose);
@@ -592,7 +592,7 @@ namespace object_manipulator {
                 if(!getInterpolatedIK(pickup_goal.arm_name,
                                       base_link_bullet_grasp_pose,
                                       pregrasp_dir,
-                                      grasps[i].desired_approach_distance,
+                                      grasps[i].approach.desired_distance,
                                       solution.position,
                                       true,
                                       false,
@@ -768,7 +768,7 @@ namespace object_manipulator {
             if(!getInterpolatedIK(pickup_goal.arm_name,
                                   base_link_bullet_grasp_pose,
                                   pregrasp_dir,
-                                  grasps[i].desired_approach_distance,
+                                  grasps[i].approach.desired_distance,
                                   solution.position,
                                   true,
                                   false,

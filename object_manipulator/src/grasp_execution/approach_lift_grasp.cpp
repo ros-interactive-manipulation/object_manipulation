@@ -49,7 +49,7 @@ float GraspTesterWithApproach::EPS = 1.0e-6;
 // ---------------------------- Definitions ---------------------------------
 
 void GraspTester::testGrasps(const object_manipulation_msgs::PickupGoal &goal,
-                             const std::vector<object_manipulation_msgs::Grasp> &grasps,
+                             const std::vector<manipulation_msgs::Grasp> &grasps,
                              std::vector<GraspExecutionInfo> &execution_info,
                              bool return_on_first_hit)
 {
@@ -62,9 +62,7 @@ void GraspTester::testGrasps(const object_manipulation_msgs::PickupGoal &goal,
     if (interrupt_function_ && interrupt_function_()) throw InterruptRequestedException();   
     if (marker_publisher_)
     {
-      geometry_msgs::PoseStamped marker_pose;
-      marker_pose.pose = grasps[i].grasp_pose;
-      marker_pose.header.frame_id = goal.target.reference_frame_id;
+      geometry_msgs::PoseStamped marker_pose = grasps[i].grasp_pose;
       marker_pose.header.stamp = ros::Time::now();
       info.marker_id_ = marker_publisher_->addGraspMarker(marker_pose);
     }  
@@ -75,7 +73,7 @@ void GraspTester::testGrasps(const object_manipulation_msgs::PickupGoal &goal,
 }
 
 void GraspPerformer::performGrasps(const object_manipulation_msgs::PickupGoal &goal,
-                                   const std::vector<object_manipulation_msgs::Grasp> &grasps,
+                                   const std::vector<manipulation_msgs::Grasp> &grasps,
                                    std::vector<GraspExecutionInfo> &execution_info)
 {
   for (size_t i=0; i<grasps.size(); i++)
@@ -98,7 +96,7 @@ void GraspPerformer::performGrasps(const object_manipulation_msgs::PickupGoal &g
 */
 arm_navigation_msgs::OrderedCollisionOperations 
 GraspTesterWithApproach::collisionOperationsForLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                                    const object_manipulation_msgs::Grasp &grasp)
+                                                    const manipulation_msgs::Grasp &grasp)
 {
   arm_navigation_msgs::OrderedCollisionOperations ord;
   arm_navigation_msgs::CollisionOperation coll;
@@ -115,11 +113,11 @@ GraspTesterWithApproach::collisionOperationsForLift(const object_manipulation_ms
     ord.collision_operations.push_back(coll);
   }
 
-  for (unsigned int i = 0; i < grasp.moved_obstacles.size(); i++)
+  for (unsigned int i = 0; i < grasp.allowed_touch_objects.size(); i++)
   {
     ROS_DEBUG_NAMED("manipulation","  Disabling all collisions for lift against moved obstacle %s",
-                     grasp.moved_obstacles[i].collision_name.c_str());
-    coll.object1 = grasp.moved_obstacles[i].collision_name;
+                     grasp.allowed_touch_objects[i].c_str());
+    coll.object1 = grasp.allowed_touch_objects[i];
     //This disables all collisions with the object. Ignore possible collisions of the robot with the object 
     //during the push-grasp. We need all the capture region to be able to do this safely. Or we can disable 
     //collisions just with the forearm, which should work almost always but still theoretically is not the right 
@@ -136,7 +134,7 @@ GraspTesterWithApproach::collisionOperationsForLift(const object_manipulation_ms
 /*! Zero padding on gripper */
 std::vector<arm_navigation_msgs::LinkPadding> 
 GraspTesterWithApproach::linkPaddingForLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                            const object_manipulation_msgs::Grasp&)
+                                            const manipulation_msgs::Grasp&)
 {
   return concat(MechanismInterface::gripperPadding(pickup_goal.arm_name, 0.0), 
                 pickup_goal.additional_link_padding);
@@ -144,13 +142,11 @@ GraspTesterWithApproach::linkPaddingForLift(const object_manipulation_msgs::Pick
 
 GraspResult 
 GraspTesterWithApproach::getInterpolatedIKForLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                                  const object_manipulation_msgs::Grasp &grasp,
+                                                  const manipulation_msgs::Grasp &grasp,
                                                   const std::vector<double> &grasp_joint_angles,
                                                   GraspExecutionInfo &execution_info)
 {
-  geometry_msgs::PoseStamped grasp_pose;
-  grasp_pose.pose = grasp.grasp_pose;
-  grasp_pose.header.frame_id = pickup_goal.target.reference_frame_id;
+  geometry_msgs::PoseStamped grasp_pose = grasp.grasp_pose;
   grasp_pose.header.stamp = ros::Time(0);
 
   float actual_lift_distance;
@@ -194,7 +190,7 @@ GraspTesterWithApproach::getInterpolatedIKForLift(const object_manipulation_msgs
 */
 arm_navigation_msgs::OrderedCollisionOperations 
 GraspTesterWithApproach::collisionOperationsForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                                     const object_manipulation_msgs::Grasp &grasp)
+                                                     const manipulation_msgs::Grasp &grasp)
 {
   arm_navigation_msgs::OrderedCollisionOperations ord;
   arm_navigation_msgs::CollisionOperation coll;
@@ -219,14 +215,15 @@ GraspTesterWithApproach::collisionOperationsForGrasp(const object_manipulation_m
   coll.object2 = arm_navigation_msgs::CollisionOperation::COLLISION_SET_ALL;
   ord.collision_operations.push_back(coll);
 
-  for (unsigned int i = 0; i < grasp.moved_obstacles.size(); i++)
+
+  for (unsigned int i = 0; i < grasp.allowed_touch_objects.size(); i++)
   {
     ROS_DEBUG_NAMED("manipulation","  Disabling all collisions for grasp against moved obstacle %s",
-                     grasp.moved_obstacles[i].collision_name.c_str());
-    coll.object1 = grasp.moved_obstacles[i].collision_name;
+                     grasp.allowed_touch_objects[i].c_str());
+    coll.object1 = grasp.allowed_touch_objects[i];
     //This disables all collisions with the object. Ignore possible collisions of the robot with the object 
     //during the push-grasp. We need all the capture region to be able to do this safely. Or we can disable 
-    //collisions just with the forearm, which should work almost always but still theoretially is not the right 
+    //collisions just with the forearm, which should work almost always but still theoretically is not the right 
     //thing to do.
     coll.object2 = arm_navigation_msgs::CollisionOperation::COLLISION_SET_ALL;
     ord.collision_operations.push_back(coll);
@@ -240,7 +237,7 @@ GraspTesterWithApproach::collisionOperationsForGrasp(const object_manipulation_m
 /*! Zero padding on gripper links */
 std::vector<arm_navigation_msgs::LinkPadding> 
 GraspTesterWithApproach::linkPaddingForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                             const object_manipulation_msgs::Grasp&)
+                                             const manipulation_msgs::Grasp&)
 {
   return concat(MechanismInterface::gripperPadding(pickup_goal.arm_name, 0.0), 
                 pickup_goal.additional_link_padding);
@@ -248,27 +245,24 @@ GraspTesterWithApproach::linkPaddingForGrasp(const object_manipulation_msgs::Pic
 
 GraspResult 
 GraspTesterWithApproach::getInterpolatedIKForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                                   const object_manipulation_msgs::Grasp &grasp,
+                                                   const manipulation_msgs::Grasp &grasp,
                                                    GraspExecutionInfo &execution_info)
 {
   //get the grasp pose in the right frame
-  geometry_msgs::PoseStamped grasp_pose_stamped;
-  grasp_pose_stamped.pose = grasp.grasp_pose;
-  grasp_pose_stamped.header.frame_id = pickup_goal.target.reference_frame_id;
+  geometry_msgs::PoseStamped grasp_pose_stamped = grasp.grasp_pose;
   grasp_pose_stamped.header.stamp = ros::Time(0);
 
   //use the opposite of the approach direction as we are going backwards, from grasp to pre-grasp
-  geometry_msgs::Vector3Stamped direction;
+  geometry_msgs::Vector3Stamped direction = grasp.approach.direction;
   direction.header.stamp = ros::Time::now();
-  direction.header.frame_id = handDescription().gripperFrame(pickup_goal.arm_name);
-  direction.vector = mechInterface().negate( handDescription().approachDirection(pickup_goal.arm_name) );
+  direction.vector = mechInterface().negate( direction.vector );
 
   std::vector<double> empty;
   //remember to pass that we want to flip the trajectory
   float actual_approach_distance;
   int error_code = mechInterface().getInterpolatedIK(pickup_goal.arm_name, 
 						     grasp_pose_stamped, 
-						     direction, grasp.desired_approach_distance,
+						     direction, grasp.approach.desired_distance,
 						     empty, 
 						     grasp.pre_grasp_posture,
 						     collisionOperationsForGrasp(pickup_goal, grasp), 
@@ -276,9 +270,9 @@ GraspTesterWithApproach::getInterpolatedIKForGrasp(const object_manipulation_msg
 						     true, execution_info.approach_trajectory_, 
                                                      actual_approach_distance);
   ROS_DEBUG_NAMED("manipulation","  Grasp executor approach distance: actual (%f), min(%f) and desired (%f)", 
-            actual_approach_distance, grasp.min_approach_distance, grasp.desired_approach_distance);
+            actual_approach_distance, grasp.approach.min_distance, grasp.approach.desired_distance);
 
-  if ( actual_approach_distance < grasp.min_approach_distance - EPS)
+  if ( actual_approach_distance < grasp.approach.min_distance - EPS)
   {
     ROS_DEBUG_NAMED("manipulation","  Grasp executor: interpolated IK for grasp below min threshold");
     if (execution_info.approach_trajectory_.points.empty())
@@ -303,7 +297,7 @@ GraspTesterWithApproach::getInterpolatedIKForGrasp(const object_manipulation_msg
 }
 
 void GraspTesterWithApproach::testGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                        const object_manipulation_msgs::Grasp &grasp,
+                                        const manipulation_msgs::Grasp &grasp,
                                         GraspExecutionInfo &execution_info)
 {
   if (marker_publisher_) marker_publisher_->colorGraspMarker(execution_info.marker_id_, 1.0, 0.0, 0.0); //red
@@ -359,7 +353,7 @@ void GraspTesterWithApproach::testGrasp(const object_manipulation_msgs::PickupGo
 /*! Disable collisions between everything and everything */
 arm_navigation_msgs::OrderedCollisionOperations 
 UnsafeGraspTester::collisionOperationsForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                               const object_manipulation_msgs::Grasp&)
+                                               const manipulation_msgs::Grasp&)
 {
   arm_navigation_msgs::OrderedCollisionOperations ord;
   arm_navigation_msgs::CollisionOperation coll;
@@ -375,7 +369,7 @@ UnsafeGraspTester::collisionOperationsForGrasp(const object_manipulation_msgs::P
 /*! Disables collision between everything and everything */
 arm_navigation_msgs::OrderedCollisionOperations 
 UnsafeGraspTester::collisionOperationsForLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                              const object_manipulation_msgs::Grasp&)
+                                              const manipulation_msgs::Grasp&)
 {
   arm_navigation_msgs::OrderedCollisionOperations ord;
   arm_navigation_msgs::CollisionOperation coll;
@@ -392,7 +386,7 @@ UnsafeGraspTester::collisionOperationsForLift(const object_manipulation_msgs::Pi
 // ---------------------------- Grasp Performers ---------------------------------
 
 void StandardGraspPerformer::performGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                          const object_manipulation_msgs::Grasp &grasp,
+                                          const manipulation_msgs::Grasp &grasp,
                                           GraspExecutionInfo &execution_info)
 {
   execution_info.result_ = approachAndGrasp(pickup_goal, grasp, execution_info);
@@ -422,7 +416,7 @@ void StandardGraspPerformer::performGrasp(const object_manipulation_msgs::Pickup
 
 object_manipulation_msgs::GraspResult 
 StandardGraspPerformer::approachAndGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                         const object_manipulation_msgs::Grasp &grasp,
+                                         const manipulation_msgs::Grasp &grasp,
                                          GraspExecutionInfo &execution_info)
 {
   ROS_INFO("Additional collision operations:");
@@ -454,7 +448,7 @@ StandardGraspPerformer::approachAndGrasp(const object_manipulation_msgs::PickupG
 
 object_manipulation_msgs::GraspResult 
 StandardGraspPerformer::lift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                             const object_manipulation_msgs::Grasp &grasp,
+                             const manipulation_msgs::Grasp &grasp,
                              GraspExecutionInfo &execution_info)
 {
   if (execution_info.lift_trajectory_.points.empty())
@@ -469,7 +463,7 @@ StandardGraspPerformer::lift(const object_manipulation_msgs::PickupGoal &pickup_
 
 object_manipulation_msgs::GraspResult 
 StandardGraspPerformer::retreat(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                const object_manipulation_msgs::Grasp &grasp,
+                                const manipulation_msgs::Grasp &grasp,
                                 GraspExecutionInfo &execution_info)
 {
   arm_navigation_msgs::OrderedCollisionOperations ord;
@@ -492,7 +486,7 @@ StandardGraspPerformer::retreat(const object_manipulation_msgs::PickupGoal &pick
 
   //even if the complete retreat trajectory is not possible, execute as many
   //steps as we can (pass min_distance = 0)
-  float retreat_distance = grasp.min_approach_distance;
+  float retreat_distance = grasp.approach.min_distance;
   float actual_distance;
   if (!mechInterface().translateGripper(pickup_goal.arm_name, direction,
 					ord, pickup_goal.additional_link_padding, 
@@ -511,7 +505,7 @@ StandardGraspPerformer::retreat(const object_manipulation_msgs::PickupGoal &pick
 
 object_manipulation_msgs::GraspResult 
 ReactiveGraspPerformer::nonReactiveLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                        const object_manipulation_msgs::Grasp &grasp,
+                                        const manipulation_msgs::Grasp &grasp,
                                         GraspExecutionInfo &execution_info)
 {
   arm_navigation_msgs::OrderedCollisionOperations ord;
@@ -561,7 +555,7 @@ ReactiveGraspPerformer::nonReactiveLift(const object_manipulation_msgs::PickupGo
 
 object_manipulation_msgs::GraspResult 
 ReactiveGraspPerformer::reactiveLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                     const object_manipulation_msgs::Grasp &grasp,
+                                     const manipulation_msgs::Grasp &grasp,
                                      GraspExecutionInfo &execution_info)
 {
   object_manipulation_msgs::ReactiveLiftGoal reactive_lift_goal;
@@ -591,7 +585,7 @@ ReactiveGraspPerformer::reactiveLift(const object_manipulation_msgs::PickupGoal 
 
 object_manipulation_msgs::GraspResult 
 ReactiveGraspPerformer::lift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                             const object_manipulation_msgs::Grasp &grasp,
+                             const manipulation_msgs::Grasp &grasp,
                              GraspExecutionInfo &execution_info)
 {
   if (pickup_goal.use_reactive_lift)
@@ -606,7 +600,7 @@ ReactiveGraspPerformer::lift(const object_manipulation_msgs::PickupGoal &pickup_
 
 object_manipulation_msgs::GraspResult 
 ReactiveGraspPerformer::approachAndGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                         const object_manipulation_msgs::Grasp &grasp,
+                                         const manipulation_msgs::Grasp &grasp,
                                          GraspExecutionInfo &execution_info)
 {
   if ( !mechInterface().attemptMoveArmToGoal(pickup_goal.arm_name, 
@@ -622,9 +616,7 @@ ReactiveGraspPerformer::approachAndGrasp(const object_manipulation_msgs::PickupG
   mechInterface().handPostureGraspAction(pickup_goal.arm_name, grasp, 
                           object_manipulation_msgs::GraspHandPostureExecutionGoal::PRE_GRASP, -1);
   
-  geometry_msgs::PoseStamped final_grasp_pose_stamped;
-  final_grasp_pose_stamped.pose = grasp.grasp_pose;
-  final_grasp_pose_stamped.header.frame_id = pickup_goal.target.reference_frame_id;
+  geometry_msgs::PoseStamped final_grasp_pose_stamped = grasp.grasp_pose;
   final_grasp_pose_stamped.header.stamp = ros::Time(0);
 
   object_manipulation_msgs::ReactiveGraspGoal reactive_grasp_goal;
@@ -657,16 +649,14 @@ ReactiveGraspPerformer::approachAndGrasp(const object_manipulation_msgs::PickupG
 
 object_manipulation_msgs::GraspResult 
 UnsafeGraspPerformer::approachAndGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                                       const object_manipulation_msgs::Grasp &grasp,
+                                       const manipulation_msgs::Grasp &grasp,
                                        GraspExecutionInfo &execution_info)
 {
   ROS_DEBUG_NAMED("manipulation", "executing unsafe grasp");
 
   //compute the pre-grasp pose
   //get the grasp pose in the right frame
-  geometry_msgs::PoseStamped grasp_pose_stamped;
-  grasp_pose_stamped.pose = grasp.grasp_pose;
-  grasp_pose_stamped.header.frame_id = pickup_goal.target.reference_frame_id;
+  geometry_msgs::PoseStamped grasp_pose_stamped = grasp.grasp_pose;
   grasp_pose_stamped.header.stamp = ros::Time(0);
 
   //use the opposite of the approach direction as we are going backwards, from grasp to pre-grasp
@@ -680,7 +670,7 @@ UnsafeGraspPerformer::approachAndGrasp(const object_manipulation_msgs::PickupGoa
   direction_norm.vector = mechInterface().normalize(direction.vector);
 
   //multiply the approach direction by the desired length and translate the grasp pose back along it
-  double desired_trajectory_length = fabs(grasp.desired_approach_distance);
+  double desired_trajectory_length = fabs(grasp.approach.desired_distance);
   direction_norm.vector.x *= desired_trajectory_length;
   direction_norm.vector.y *= desired_trajectory_length;
   direction_norm.vector.z *= desired_trajectory_length;
@@ -707,9 +697,7 @@ UnsafeGraspPerformer::approachAndGrasp(const object_manipulation_msgs::PickupGoa
   //otherwise, call reactive grasping
   else
   {
-    geometry_msgs::PoseStamped final_grasp_pose_stamped;
-    final_grasp_pose_stamped.pose = grasp.grasp_pose;
-    final_grasp_pose_stamped.header.frame_id = pickup_goal.target.reference_frame_id;
+    geometry_msgs::PoseStamped final_grasp_pose_stamped = grasp.grasp_pose;
     final_grasp_pose_stamped.header.stamp = ros::Time(0);
 
     object_manipulation_msgs::ReactiveGraspGoal reactive_grasp_goal;

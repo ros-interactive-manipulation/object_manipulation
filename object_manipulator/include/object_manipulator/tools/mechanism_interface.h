@@ -344,10 +344,10 @@ class MechanismInterface
   //---------- gripper ----------
 
   //! Requests the hand to pre-grasp, grasp or release
-  void handPostureGraspAction(std::string arm_name, const object_manipulation_msgs::Grasp &grasp, int goal, float max_contact_force);
+  void handPostureGraspAction(std::string arm_name, const manipulation_msgs::Grasp &grasp, int goal, float max_contact_force);
 
   //! Queries the hand if a grasp is currently being correctly executed
-  bool graspPostureQuery(std::string arm_name, const object_manipulation_msgs::Grasp grasp);
+  bool graspPostureQuery(std::string arm_name, const manipulation_msgs::Grasp grasp);
 
   //---------- head ----------
 
@@ -381,7 +381,7 @@ class MechanismInterface
   //! Converts all the internal components of a GraspableObject to the desired frame,
   //! and sets that frame as the reference_frame_id of that object.
   //! Does NOT convert the SceneRegion component which is camera frame by definition.
-  void convertGraspableObjectComponentsToFrame(object_manipulation_msgs::GraspableObject &object,
+  void convertGraspableObjectComponentsToFrame(manipulation_msgs::GraspableObject &object,
                                                std::string frame_id);
 
   //! Just a convenience function
