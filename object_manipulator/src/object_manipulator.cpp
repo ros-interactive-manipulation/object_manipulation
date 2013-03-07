@@ -254,7 +254,8 @@ void ObjectManipulator::pickup(const PickupGoal::ConstPtr &pickup_goal,
   }
   else 
   {
-    grasp_tester = grasp_tester_fast_; //grasp_tester_with_approach_;
+    //grasp_tester = grasp_tester_with_approach_;
+    grasp_tester = grasp_tester_fast_; 
     if (pickup_goal->use_reactive_execution)
     {
       grasp_performer = reactive_grasp_performer_;
@@ -275,14 +276,12 @@ void ObjectManipulator::pickup(const PickupGoal::ConstPtr &pickup_goal,
   //PROF_RESET_ALL;
   //PROF_START_TIMER(TOTAL_PICKUP_TIMER);
 
-  ros::WallDuration dur(1.0);
+  ros::WallDuration dur(0.5);
   dur.sleep();
 
   arm_navigation_msgs::OrderedCollisionOperations emp_coll;
   std::vector<arm_navigation_msgs::LinkPadding> link_padding;
   mechInterface().getPlanningScene(emp_coll, link_padding);
-
-  std::map<unsigned int, unsigned int> results;
 
   ros::WallTime start = ros::WallTime::now();
 
@@ -317,6 +316,7 @@ void ObjectManipulator::pickup(const PickupGoal::ConstPtr &pickup_goal,
       grasp_tester->setFeedbackFunction(boost::bind(&ObjectManipulator::graspFeedback, 
                                                     this, action_server, tested_grasps,  _1));
       //test a batch of grasps
+      ROS_DEBUG_STREAM_NAMED("manipulation", "Object manipulator: testing a new batch of " << new_grasps.size() << " grasps");
       std::vector<GraspExecutionInfo> execution_info;
       grasp_tester->testGrasps(*pickup_goal, new_grasps, execution_info, !pickup_goal->only_perform_feasibility_test);
       if (execution_info.empty()) throw GraspException("grasp tester provided empty ExecutionInfo");

@@ -130,7 +130,6 @@ namespace object_manipulator {
 
             marker.id = 0;
 
-            ROS_DEBUG("Displaying marker %d with ns %s", i, marker.ns.c_str());
             vis_marker_publisher.publish(marker);
         }
     }
@@ -287,6 +286,7 @@ namespace object_manipulator {
                                      bool return_on_first_hit)
 
     {
+      ROS_DEBUG_STREAM_NAMED("manipulation","Grasp tester fast: testing a batch of " << grasps.size() << " grasps");
         ros::WallTime start = ros::WallTime::now();
         std::map<unsigned int, unsigned int> outcome_count;
         planning_environment::CollisionModels* cm = getCollisionModels();
@@ -300,24 +300,27 @@ namespace object_manipulator {
         getGroupLinks(handDescription().armGroup(pickup_goal.arm_name), arm_links);
 
         collision_space::EnvironmentModel::AllowedCollisionMatrix original_acm = cm->getCurrentAllowedCollisionMatrix();
-        cm->disableCollisionsForNonUpdatedLinks(pickup_goal.arm_name); /* disable collisions for all links not in the arm we are using */
+	// disable collisions for all links not in the arm we are using
+        cm->disableCollisionsForNonUpdatedLinks(pickup_goal.arm_name); 
         collision_space::EnvironmentModel::AllowedCollisionMatrix group_disable_acm = cm->getCurrentAllowedCollisionMatrix();
         collision_space::EnvironmentModel::AllowedCollisionMatrix object_disable_acm = group_disable_acm;
         object_disable_acm.changeEntry(pickup_goal.collision_object_name, end_effector_links, true);
         collision_space::EnvironmentModel::AllowedCollisionMatrix object_support_disable_acm = object_disable_acm;
         if(pickup_goal.allow_gripper_support_collision)
         {
-            ROS_DEBUG("Disabling collisions between gripper and support surface");
-            if(pickup_goal.collision_support_surface_name == "\"all\"")
-            {
-                for(unsigned int i = 0; i < end_effector_links.size(); i++){
-                    object_support_disable_acm.changeEntry(end_effector_links[i], true);
-                }
-            }
-            else{
-                ROS_DEBUG("not all");
-                object_support_disable_acm.changeEntry(pickup_goal.collision_support_surface_name, end_effector_links, true);
-            }
+	  ROS_DEBUG_NAMED("manipulation","Disabling collisions between gripper and support surface");
+	  if(pickup_goal.collision_support_surface_name == "\"all\"")
+          {
+	    for(unsigned int i = 0; i < end_effector_links.size(); i++)
+	    {
+	      object_support_disable_acm.changeEntry(end_effector_links[i], true);
+	    }
+	  }
+	  else
+	  {
+	    ROS_DEBUG_NAMED("manipulation","not all");
+	    object_support_disable_acm.changeEntry(pickup_goal.collision_support_surface_name, end_effector_links, true);
+          }
         }
 
         /* allows collisions between the object and the and effector */
@@ -344,19 +347,6 @@ namespace object_manipulator {
         std_msgs::Header target_header;
         target_header.frame_id = pickup_goal.target.reference_frame_id;
 
-        bool in_object_frame = false;
-        tf::Transform obj_pose(tf::Quaternion(0,0,0,1.0), tf::Vector3(0.0,0.0,0.0));
-        if(pickup_goal.target.reference_frame_id == pickup_goal.collision_object_name) {
-            in_object_frame = true;
-            geometry_msgs::PoseStamped obj_world_pose_stamped;
-            cm->convertPoseGivenWorldTransform(*state,
-                                               cm->getWorldFrameId(),
-                                               pickup_goal.target.potential_models[0].pose.header,
-                                               pickup_goal.target.potential_models[0].pose.pose,
-                                               obj_world_pose_stamped);
-            tf::poseMsgToTF(obj_world_pose_stamped.pose, obj_pose);
-        }
-
         execution_info.clear();
         execution_info.resize(grasps.size());
 
@@ -375,6 +365,7 @@ namespace object_manipulator {
         ros::Rate debug_rate(0.2);
 
         //now this is grasp specific
+	ROS_DEBUG_NAMED("manipulation", "grasp_tester_fast: testing grasp poses");
         for(unsigned int i = 0; i < grasps.size(); i++) {
 
             //check whether the grasp pose is ok (only checking hand, not arms)
@@ -388,26 +379,21 @@ namespace object_manipulator {
             //always true
             execution_info[i].result_.continuation_possible = true;
 
-            if(!in_object_frame) {
-                geometry_msgs::PoseStamped grasp_world_pose_stamped;
-                if(!cm->convertPoseGivenWorldTransform(*state,
-                                                       cm->getWorldFrameId(),
-                                                       target_header,
-                                                       grasps[i].grasp_pose.pose,
-                                                       grasp_world_pose_stamped)) {
-                    ROS_WARN_STREAM("Can't convert into non-object frame " << target_header.frame_id);
-                    continue;
-                }
-                tf::poseMsgToTF(grasp_world_pose_stamped.pose, grasp_poses[i]);
-            } else {
-                tf::Transform gp;
-                tf::poseMsgToTF(grasps[i].grasp_pose.pose, gp);
-                grasp_poses[i] = obj_pose*gp;
-            }
+	    geometry_msgs::PoseStamped grasp_world_pose_stamped;
+	    if(!cm->convertPoseGivenWorldTransform(*state,
+						   cm->getWorldFrameId(),
+						   grasps[i].grasp_pose.header,
+						   grasps[i].grasp_pose.pose,
+						   grasp_world_pose_stamped)) {
+	      ROS_WARN_STREAM("Can't convert into non-object frame from " << grasps[i].grasp_pose.header.frame_id);
+	      continue;
+	    }
+	    tf::poseMsgToTF(grasp_world_pose_stamped.pose, grasp_poses[i]);
+
             state->updateKinematicStateWithLinkAt(handDescription().gripperFrame(pickup_goal.arm_name),grasp_poses[i]);
 
             if(cm->isKinematicStateInCollision(*state)) {
-                ROS_DEBUG_STREAM("Grasp in collision");
+	      ROS_DEBUG_STREAM_NAMED("manipulation","Grasp in collision");
                 print_contacts(cm, state);
 
                 std_msgs::ColorRGBA col_pregrasp;
@@ -432,6 +418,7 @@ namespace object_manipulator {
         cm->revertCollisionSpacePaddingToDefault();
 
         //first we do lift, with the hand in the grasp posture (collisions allowed between gripper and object)
+	ROS_DEBUG_NAMED("manipulation", "grasp_tester_fast: testing lift poses");
         cm->setAlteredAllowedCollisionMatrix(object_support_all_arm_disable_acm);
         for(unsigned int i = 0; i < grasps.size(); i++) {
 
@@ -455,8 +442,8 @@ namespace object_manipulator {
         }
 
         //now we do pre-grasp not allowing object touch, but with arms disabled
+	ROS_DEBUG_NAMED("manipulation", "grasp_tester_fast: testing pre-grasp poses");
         cm->setAlteredAllowedCollisionMatrix(group_all_arm_disable_acm);
-
         for(unsigned int i = 0; i < grasps.size(); i++) {
 
             if(execution_info[i].result_.result_code != 0) continue;
@@ -502,7 +489,7 @@ namespace object_manipulator {
         const std::vector<std::string>& joint_names = ik_solver_map_[pickup_goal.arm_name]->getJointNames();
 
         if(return_on_first_hit) {
-
+	  ROS_DEBUG_NAMED("manipulation", "grasp_tester_fast: testing InterpolatedIK and returning on first hit");
             bool last_ik_failed = false;
             for(unsigned int i = 0; i < grasps.size(); i++) {
 
@@ -679,7 +666,7 @@ namespace object_manipulator {
                     outcome_count[GraspResult::LIFT_OUT_OF_REACH]++;
                     continue;
                 } else {
-                    ROS_DEBUG_STREAM("Everything successful");
+		  ROS_DEBUG_STREAM_NAMED("manipulation","Everything successful");
                     execution_info[i].result_.result_code = GraspResult::SUCCESS;
                     execution_info.resize(i+1);
                     outcome_count[GraspResult::SUCCESS]++;
@@ -702,7 +689,7 @@ namespace object_manipulator {
 
         //and also reducing link paddings
         cm->applyLinkPaddingToCollisionSpace(linkPaddingForGrasp(pickup_goal));
-
+	ROS_DEBUG_NAMED("manipulation", "grasp_tester_fast: testing InterpolatedIK");
         for(unsigned int i = 0; i < grasps.size(); i++) {
 
             if(execution_info[i].result_.result_code != 0) continue;
@@ -801,9 +788,8 @@ namespace object_manipulator {
         cm->revertCollisionSpacePaddingToDefault();
 
         cm->setAlteredAllowedCollisionMatrix(group_disable_acm);
-
+	ROS_DEBUG_NAMED("manipulation", "grasp_tester_fast: testing grasp start pose after InterpolatedIK");
         for(unsigned int i = 0; i < grasps.size(); i++) {
-
             if(execution_info[i].result_.result_code != 0) continue;
 
             if(execution_info[i].approach_trajectory_.points.empty()) {
@@ -850,7 +836,7 @@ namespace object_manipulator {
 
         //now we need to disable collisions with the object for lift
         cm->setAlteredAllowedCollisionMatrix(object_support_disable_acm);
-
+	ROS_DEBUG_NAMED("manipulation", "grasp_tester_fast: testing lift end pose after InterpolatedIK");
         for(unsigned int i = 0; i < grasps.size(); i++) {
 
             if(execution_info[i].result_.result_code != 0) continue;
