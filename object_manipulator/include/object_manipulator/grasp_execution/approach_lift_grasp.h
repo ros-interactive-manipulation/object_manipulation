@@ -62,7 +62,7 @@ class GraspTester {
 protected:
   //! Tests a single grasp
   virtual void testGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                         const object_manipulation_msgs::Grasp &grasp,
+                         const manipulation_msgs::Grasp &grasp,
                          GraspExecutionInfo &execution_info) = 0;  
 
   //! The marker publisher that will be used; NULL is marker publishing is disabled
@@ -79,7 +79,7 @@ public:
 
   //! Tests a set of grasps and provides their execution info
   virtual void testGrasps(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                          const std::vector<object_manipulation_msgs::Grasp> &grasps,
+                          const std::vector<manipulation_msgs::Grasp> &grasps,
                           std::vector<GraspExecutionInfo> &execution_info,
                           bool return_on_first_hit);
 
@@ -108,7 +108,7 @@ class GraspPerformer {
 protected:
   //! Attempts to perform a single grasp
   virtual void performGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                            const object_manipulation_msgs::Grasp &grasp,
+                            const manipulation_msgs::Grasp &grasp,
                             GraspExecutionInfo &execution_info) = 0;
 
   //! The marker publisher that will be used; NULL is marker publishing is disabled
@@ -125,7 +125,7 @@ public:
 
   //! Attempts to perform a set of grasps
   virtual void performGrasps(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                             const std::vector<object_manipulation_msgs::Grasp> &grasps,
+                             const std::vector<manipulation_msgs::Grasp> &grasps,
                              std::vector<GraspExecutionInfo> &execution_info);
 
   //! Sets the marker publisher to be used
@@ -155,41 +155,41 @@ class GraspTesterWithApproach : public GraspTester
 {
 protected:
   virtual void testGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                         const object_manipulation_msgs::Grasp &grasp,
+                         const manipulation_msgs::Grasp &grasp,
                          GraspExecutionInfo &execution_info);  
 
   //! Calls the interpolated IK service to find a path from the grasp to lift the object
   object_manipulation_msgs::GraspResult 
   getInterpolatedIKForLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                           const object_manipulation_msgs::Grasp &grasp,
+                           const manipulation_msgs::Grasp &grasp,
                            const std::vector<double> &grasp_joint_angles,
                            GraspExecutionInfo &execution_info);
   
   //! Collision operations to be used when planning the lift motion
   virtual arm_navigation_msgs::OrderedCollisionOperations 
   collisionOperationsForLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                             const object_manipulation_msgs::Grasp &grasp);
+                             const manipulation_msgs::Grasp &grasp);
   
   //! Dynamic link padding to be used when planning the lift motion
   virtual std::vector<arm_navigation_msgs::LinkPadding> 
   linkPaddingForLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                     const object_manipulation_msgs::Grasp &grasp);  
+                     const manipulation_msgs::Grasp &grasp);  
 
   //! Computes an interpolated IK trajectory between pre_grasp and grasp and checks if it has enough points
   object_manipulation_msgs::GraspResult 
   getInterpolatedIKForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                            const object_manipulation_msgs::Grasp &grasp,
+                            const manipulation_msgs::Grasp &grasp,
                             GraspExecutionInfo &execution_info);
   
   //! Collision operations to be used when planning the grasp motion
   virtual arm_navigation_msgs::OrderedCollisionOperations 
   collisionOperationsForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                              const object_manipulation_msgs::Grasp &grasp);
+                              const manipulation_msgs::Grasp &grasp);
   
   //! Dynamic link padding to be used for grasp operation
   virtual std::vector<arm_navigation_msgs::LinkPadding> 
   linkPaddingForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                      const object_manipulation_msgs::Grasp &grasp);
+                      const manipulation_msgs::Grasp &grasp);
 
   //! Epsilon margin of error used when checking trajectory lengths
   static float EPS;
@@ -202,12 +202,12 @@ protected:
   //! Disables all collisions
   virtual arm_navigation_msgs::OrderedCollisionOperations 
   collisionOperationsForLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                             const object_manipulation_msgs::Grasp &grasp);
+                             const manipulation_msgs::Grasp &grasp);
 
   //! Disables all collisions
   virtual arm_navigation_msgs::OrderedCollisionOperations 
   collisionOperationsForGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                              const object_manipulation_msgs::Grasp &grasp);
+                              const manipulation_msgs::Grasp &grasp);
 };
 
 // ---------------------------- Grasp Performers ---------------------------------
@@ -216,22 +216,22 @@ protected:
 class StandardGraspPerformer : public GraspPerformer {
 protected:
   virtual void performGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                            const object_manipulation_msgs::Grasp &grasp,
+                            const manipulation_msgs::Grasp &grasp,
                             GraspExecutionInfo &execution_info);
 
   virtual object_manipulation_msgs::GraspResult 
   approachAndGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                   const object_manipulation_msgs::Grasp &grasp,
+                   const manipulation_msgs::Grasp &grasp,
                    GraspExecutionInfo &execution_info);
   
   virtual object_manipulation_msgs::GraspResult 
   lift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-       const object_manipulation_msgs::Grasp &grasp,
+       const manipulation_msgs::Grasp &grasp,
        GraspExecutionInfo &execution_info);
 
   virtual object_manipulation_msgs::GraspResult 
   retreat(const object_manipulation_msgs::PickupGoal &pickup_goal,
-          const object_manipulation_msgs::Grasp &grasp,
+          const manipulation_msgs::Grasp &grasp,
           GraspExecutionInfo &execution_info); 
 };
 
@@ -243,23 +243,23 @@ protected:
   //! Open loop lift that just executes a pre-set trajectory
   virtual object_manipulation_msgs::GraspResult 
   nonReactiveLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                  const object_manipulation_msgs::Grasp &grasp,
+                  const manipulation_msgs::Grasp &grasp,
                   GraspExecutionInfo &execution_info);
   
   //! Lifting based on fingertip forces
   virtual object_manipulation_msgs::GraspResult 
   reactiveLift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-               const object_manipulation_msgs::Grasp &grasp,
+               const manipulation_msgs::Grasp &grasp,
                GraspExecutionInfo &execution_info);  
   
   virtual object_manipulation_msgs::GraspResult 
   lift(const object_manipulation_msgs::PickupGoal &pickup_goal,
-       const object_manipulation_msgs::Grasp &grasp,
+       const manipulation_msgs::Grasp &grasp,
        GraspExecutionInfo &execution_info);  
   
   virtual object_manipulation_msgs::GraspResult 
   approachAndGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                   const object_manipulation_msgs::Grasp &grasp,
+                   const manipulation_msgs::Grasp &grasp,
                    GraspExecutionInfo &execution_info);  
 };
 
@@ -282,7 +282,7 @@ class UnsafeGraspPerformer : public ReactiveGraspPerformer {
 protected:
   virtual object_manipulation_msgs::GraspResult 
   approachAndGrasp(const object_manipulation_msgs::PickupGoal &pickup_goal,
-                   const object_manipulation_msgs::Grasp &grasp,
+                   const manipulation_msgs::Grasp &grasp,
                    GraspExecutionInfo &execution_info);  
 };
 

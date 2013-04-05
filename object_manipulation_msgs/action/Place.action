@@ -3,16 +3,15 @@
 # which arm to be used for grasping
 string arm_name
 
-# a list of possible transformations for placing the object (place_trans)
-# the final pose of the wrist for placement (place_wrist_pose) is as follows:
-# place_wrist_pose = place_trans * grasp_pose
-# the frame_id for wrist_trans is defined here, and 
-# should be the same for all place_locations
+# a list of possible locations for the gripper when placing
+# note that these refer to where the *gripper* should go when the object is placed
+# it is the job of the caller to make sure that these are set to that the *object*
+# ends up in a desired location
 geometry_msgs/PoseStamped[] place_locations
 
 # the grasp that has been executed on this object
 # (contains the grasp_pose referred to above)
-Grasp grasp
+manipulation_msgs/Grasp grasp
 
 # how far the retreat should ideally be away from the place location
 float32 desired_retreat_distance

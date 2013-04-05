@@ -66,11 +66,6 @@ protected:
   //! Transform listener 
   tf::TransformListener listener_;
 
-  //! Computes the gripper pose for a desired object place location
-  geometry_msgs::PoseStamped computeGripperPose(geometry_msgs::PoseStamped place_location, 
-						geometry_msgs::Pose grasp_pose,
-						std::string frame_id);
-
   //! Tests a single place location
   virtual void testPlace(const object_manipulation_msgs::PlaceGoal &place_goal,
                          const geometry_msgs::PoseStamped &place_location,

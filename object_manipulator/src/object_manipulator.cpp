@@ -45,13 +45,6 @@
 
 #include <object_manipulation_msgs/tools.h>
 
-//old style executors
-#include "object_manipulator/grasp_execution/grasp_executor_with_approach.h"
-#include "object_manipulator/grasp_execution/reactive_grasp_executor.h"
-#include "object_manipulator/grasp_execution/unsafe_grasp_executor.h"
-#include "object_manipulator/place_execution/place_executor.h"
-
-//new style executors
 #include "object_manipulator/grasp_execution/approach_lift_grasp.h"
 #include "object_manipulator/grasp_execution/grasp_tester_fast.h"
 #include "object_manipulator/place_execution/descend_retreat_place.h"
@@ -60,7 +53,6 @@
 #include "object_manipulator/tools/grasp_marker_publisher.h"
 #include "object_manipulator/tools/exceptions.h"
 
-using object_manipulation_msgs::GraspableObject;
 using object_manipulation_msgs::PickupGoal;
 using object_manipulation_msgs::PickupResult;
 using object_manipulation_msgs::PickupFeedback;
@@ -72,8 +64,9 @@ using object_manipulation_msgs::GraspResult;
 using object_manipulation_msgs::PlaceLocationResult;
 using object_manipulation_msgs::getGraspResultInfo;
 using object_manipulation_msgs::getPlaceLocationResultInfo;
-using object_manipulation_msgs::Grasp;
-using object_manipulation_msgs::GraspPlanningAction;
+using manipulation_msgs::Grasp;
+using manipulation_msgs::GraspPlanningAction;
+using manipulation_msgs::GraspableObject;
 
 namespace object_manipulator {
 
@@ -89,15 +82,6 @@ ObjectManipulator::ObjectManipulator() :
     marker_pub_ = new GraspMarkerPublisher();
   }
 
-  //old style executors
-  grasp_executor_with_approach_ = new GraspExecutorWithApproach(marker_pub_);
-  reactive_grasp_executor_ = new ReactiveGraspExecutor(marker_pub_);
-  unsafe_grasp_executor_ = new UnsafeGraspExecutor(marker_pub_);
-  place_executor_ = new PlaceExecutor(marker_pub_);
-  reactive_place_executor_ = new ReactivePlaceExecutor(marker_pub_);
-
-  //new syle executors
-  
   grasp_tester_with_approach_ = new GraspTesterWithApproach;
   grasp_tester_with_approach_->setMarkerPublisher(marker_pub_);
   grasp_tester_fast_ = new GraspTesterFast;
@@ -138,14 +122,6 @@ ObjectManipulator::~ObjectManipulator()
 {
   delete marker_pub_;
 
-  //old style executors
-  delete grasp_executor_with_approach_;
-  delete reactive_grasp_executor_;
-  delete unsafe_grasp_executor_;
-  delete place_executor_;
-  delete reactive_place_executor_;
-
-  //new style executors
   delete grasp_tester_fast_;
   delete grasp_tester_with_approach_;
   delete unsafe_grasp_tester_;
@@ -169,14 +145,14 @@ void ObjectManipulator::graspFeedback(
 }
 
 void ObjectManipulator::graspPlanningFeedbackCallback(
-                                             const object_manipulation_msgs::GraspPlanningFeedbackConstPtr &feedback)
+                                             const manipulation_msgs::GraspPlanningFeedbackConstPtr &feedback)
 {
   ROS_DEBUG_STREAM_NAMED("manipulation", "Feedback from planning action, total grasps: " << feedback->grasps.size());
   grasp_container_.addGrasps(feedback->grasps);
 }
 
 void ObjectManipulator::graspPlanningDoneCallback(const actionlib::SimpleClientGoalState& state,
-                                             const object_manipulation_msgs::GraspPlanningResultConstPtr &result)
+                                             const manipulation_msgs::GraspPlanningResultConstPtr &result)
 {
   if (state == actionlib::SimpleClientGoalState::SUCCEEDED)
   {
@@ -241,7 +217,7 @@ void ObjectManipulator::pickup(const PickupGoal::ConstPtr &pickup_goal,
     }
 
     //call the planner action, which will populate the grasp container as feedback arrives
-    object_manipulation_msgs::GraspPlanningGoal goal;
+    manipulation_msgs::GraspPlanningGoal goal;
     goal.arm_name = pickup_goal->arm_name;
     goal.target = pickup_goal->target;
     goal.collision_object_name = pickup_goal->collision_object_name;
@@ -278,7 +254,8 @@ void ObjectManipulator::pickup(const PickupGoal::ConstPtr &pickup_goal,
   }
   else 
   {
-    grasp_tester = grasp_tester_fast_; //grasp_tester_with_approach_;
+    //grasp_tester = grasp_tester_with_approach_;
+    grasp_tester = grasp_tester_fast_; 
     if (pickup_goal->use_reactive_execution)
     {
       grasp_performer = reactive_grasp_performer_;
@@ -299,14 +276,12 @@ void ObjectManipulator::pickup(const PickupGoal::ConstPtr &pickup_goal,
   //PROF_RESET_ALL;
   //PROF_START_TIMER(TOTAL_PICKUP_TIMER);
 
-  ros::WallDuration dur(1.0);
+  ros::WallDuration dur(0.5);
   dur.sleep();
 
   arm_navigation_msgs::OrderedCollisionOperations emp_coll;
   std::vector<arm_navigation_msgs::LinkPadding> link_padding;
   mechInterface().getPlanningScene(emp_coll, link_padding);
-
-  std::map<unsigned int, unsigned int> results;
 
   ros::WallTime start = ros::WallTime::now();
 
@@ -320,7 +295,7 @@ void ObjectManipulator::pickup(const PickupGoal::ConstPtr &pickup_goal,
       if (action_server->isPreemptRequested()) throw InterruptRequestedException();
 
       ROS_DEBUG_STREAM_NAMED("manipulation", "Object manipulator: getting grasps beyond " << tested_grasps);
-      std::vector<object_manipulation_msgs::Grasp> new_grasps = grasp_container_.getGrasps(tested_grasps);
+      std::vector<manipulation_msgs::Grasp> new_grasps = grasp_container_.getGrasps(tested_grasps);
       if ( new_grasps.empty() )
       { 
         if ( using_planner_action && (grasp_planning_actions_.client(planner_action).getState() == 
@@ -341,6 +316,7 @@ void ObjectManipulator::pickup(const PickupGoal::ConstPtr &pickup_goal,
       grasp_tester->setFeedbackFunction(boost::bind(&ObjectManipulator::graspFeedback, 
                                                     this, action_server, tested_grasps,  _1));
       //test a batch of grasps
+      ROS_DEBUG_STREAM_NAMED("manipulation", "Object manipulator: testing a new batch of " << new_grasps.size() << " grasps");
       std::vector<GraspExecutionInfo> execution_info;
       grasp_tester->testGrasps(*pickup_goal, new_grasps, execution_info, !pickup_goal->only_perform_feasibility_test);
       if (execution_info.empty()) throw GraspException("grasp tester provided empty ExecutionInfo");

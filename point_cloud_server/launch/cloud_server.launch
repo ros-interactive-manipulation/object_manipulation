@@ -1,16 +1,13 @@
 <launch>
  
-    <arg name="stereo" default="true"/>
     <arg name="debug" default="false"/>
-    
+    <arg name="point_cloud_topic" default="/head_mount_kinect/rgb/object_modeling_points_filtered"/>
+
     <arg if="$(arg debug)" name="debug_prefix" value="xterm -e gdb -ex run --args"/>
     <arg unless="$(arg debug)" name="debug_prefix" value=""/>
  
     <node pkg="point_cloud_server" launch-prefix="$(arg debug_prefix)" name="point_cloud_server_action" type="point_cloud_server" respawn="false" output="screen">
-          
-      <remap if="$(arg stereo)" from="snapshot_input_topic" to="/narrow_stereo_textured/points2" />      
-      <remap unless="$(arg stereo)" from="snapshot_input_topic" to="/camera/rgb/points" />
- 
+      <remap from="snapshot_input_topic" to="$(arg point_cloud_topic)" />
     </node>
 
 </launch>

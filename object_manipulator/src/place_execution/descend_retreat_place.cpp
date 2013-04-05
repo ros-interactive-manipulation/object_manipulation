@@ -60,10 +60,7 @@ void PlaceTester::testPlaces(const object_manipulation_msgs::PlaceGoal &goal,
     if (feedback_function_) feedback_function_(i);
     if (interrupt_function_ && interrupt_function_()) throw InterruptRequestedException();
     PlaceExecutionInfo info;
-
-    //compute gripper location for final place
-    info.gripper_place_pose_ = computeGripperPose(place_locations[i], goal.grasp.grasp_pose, 
-                                                  handDescription().robotFrame(goal.arm_name));
+    info.gripper_place_pose_ = place_locations[i];
     if (marker_publisher_)
     {
       info.marker_id_ = marker_publisher_->addGraspMarker(info.gripper_place_pose_);
@@ -74,54 +71,6 @@ void PlaceTester::testPlaces(const object_manipulation_msgs::PlaceGoal &goal,
     if (info.result_.result_code == info.result_.SUCCESS && return_on_first_hit) return;
   }
 }
-
-geometry_msgs::PoseStamped 
-PlaceTester::computeGripperPose(geometry_msgs::PoseStamped place_location, 
-                                        geometry_msgs::Pose grasp_pose, 
-                                        std::string frame_id)
-{
-  //get the gripper pose relative to place location
-  tf::Transform place_trans;
-  tf::poseMsgToTF(place_location.pose, place_trans);
-  tf::Transform grasp_trans;
-  tf::poseMsgToTF(grasp_pose, grasp_trans);
-  grasp_trans = place_trans * grasp_trans;
-
-  //get it in the requested frame
-  tf::Stamped<tf::Pose> grasp_trans_stamped;
-  grasp_trans_stamped.setData(grasp_trans);
-  grasp_trans_stamped.frame_id_ = place_location.header.frame_id;
-  grasp_trans_stamped.stamp_ = ros::Time::now();
-  if (!listener_.waitForTransform(frame_id, place_location.header.frame_id, ros::Time::now(), ros::Duration(1.0)))
-  {
-    ROS_ERROR("Object place: tf does not have transform from %s to %s", 
-	      place_location.header.frame_id.c_str(),
-	      frame_id.c_str());
-    throw MechanismException( std::string("Object place: tf does not have transform from ") + 
-			      place_location.header.frame_id.c_str() + std::string(" to ") + 
-			      frame_id);
-  }
-  tf::Stamped<tf::Pose> grasp_trans_base;
-  try
-  {
-    listener_.transformPose( frame_id, grasp_trans_stamped, grasp_trans_base);
-  }
-  catch (tf::TransformException ex)
-  {
-    ROS_ERROR("Object place: tf failed to transform gripper pose into frame %s; exception: %s", 
-	      frame_id.c_str(), ex.what());
-    throw MechanismException( std::string("tf failed to transform gripper pose into frame ") + 
-			      frame_id + std::string("; tf exception: ") +  
-			      std::string(ex.what()) );
-  }
-  
-  geometry_msgs::PoseStamped gripper_pose;
-  tf::poseTFToMsg(grasp_trans_base, gripper_pose.pose);
-  gripper_pose.header.frame_id = frame_id;
-  gripper_pose.header.stamp = ros::Time::now();
-  return gripper_pose;
-}
-
 
 void PlacePerformer::performPlaces(const object_manipulation_msgs::PlaceGoal &goal,
                                    const std::vector<geometry_msgs::PoseStamped> &place_locations,

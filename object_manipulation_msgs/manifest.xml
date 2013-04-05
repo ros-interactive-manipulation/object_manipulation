@@ -24,6 +24,7 @@
   <depend package="household_objects_database_msgs"/>
   <depend package="shape_msgs"/>
   <depend package="arm_navigation_msgs"/>
+  <depend package="manipulation_msgs"/>
 
   <export>
     <cpp cflags="-I${prefix}/include"/>
