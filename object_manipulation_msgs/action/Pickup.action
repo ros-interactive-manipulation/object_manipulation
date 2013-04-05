@@ -4,11 +4,11 @@
 string arm_name
 
 # the object to be grasped
-GraspableObject target
+manipulation_msgs/GraspableObject target
 
 # a list of grasps to be used
 # if empty, the grasp executive will call one of its own planners
-Grasp[] desired_grasps
+manipulation_msgs/Grasp[] desired_grasps
 
 # how the object should be lifted after the grasp
 # the frame_id that this lift is specified in MUST be either the robot_frame 
@@ -64,7 +64,7 @@ arm_navigation_msgs/LinkPadding[] additional_link_padding
 
 # an optional list of obstacles that we have semantic information about
 # and that can be moved in the course of grasping
-GraspableObject[] movable_obstacles
+manipulation_msgs/GraspableObject[] movable_obstacles
 
 # the maximum contact force to use while grasping (<=0 to disable)
 float32 max_contact_force
@@ -75,11 +75,11 @@ float32 max_contact_force
 ManipulationResult manipulation_result
 
 # The performed grasp, if attempt was successful
-Grasp grasp
+manipulation_msgs/Grasp grasp
 
 # the complete list of attempted grasp, in the order in which they have been attempted
 # the successful one should be the last one in this list
-Grasp[] attempted_grasps
+manipulation_msgs/Grasp[] attempted_grasps
 
 # the outcomes of the attempted grasps, in the same order as attempted_grasps
 GraspResult[] attempted_grasp_results

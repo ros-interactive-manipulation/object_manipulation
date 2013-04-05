@@ -84,9 +84,9 @@ protected:
   {
     point_cloud_server::StoreCloudResult result;
     std::stringstream ss;
-    ss << "Didn't find cloud [" << goal->name << "] on cloud server!"
-        << "(If you were trying to get a cloud, did you forget to provide a topic?)";
-    ROS_WARN_STREAM(ss);
+    ROS_WARN("Didn't find cloud on server! (If you were trying to get a cloud, did you forget to provide a topic?)");
+    ROS_WARN("goal->name was %s", goal->name.c_str());
+    ROS_WARN("goal->topic was %s", goal->topic.c_str());
     result.result = result.NAME_ERROR;
     store_cloud_server_.setAborted(result, ss.str() );
   }

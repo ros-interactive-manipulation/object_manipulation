@@ -290,10 +290,6 @@ void PlaceTesterFast::testPlaces(const object_manipulation_msgs::PlaceGoal &plac
       continue;
     }
     tf::poseMsgToTF(execution_info[i].gripper_place_pose_.pose, place_poses[i]);
-    tf::Transform grasp_trans;
-    tf::poseMsgToTF(place_goal.grasp.grasp_pose, grasp_trans);
-    //post multiply for object frame
-    place_poses[i] = place_poses[i]*grasp_trans;
     tf::poseTFToMsg(place_poses[i], execution_info[i].gripper_place_pose_.pose);
     state->updateKinematicStateWithLinkAt(handDescription().gripperFrame(place_goal.arm_name),place_poses[i]);
     

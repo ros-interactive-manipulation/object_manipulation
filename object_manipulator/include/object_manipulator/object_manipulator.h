@@ -41,23 +41,17 @@
 
 #include <object_manipulation_msgs/PickupAction.h>
 #include <object_manipulation_msgs/PlaceAction.h>
-#include <object_manipulation_msgs/GraspPlanningAction.h>
+#include <manipulation_msgs/GraspPlanningAction.h>
 
 #include "object_manipulator/tools/service_action_wrappers.h"
 #include "object_manipulator/tools/mechanism_interface.h"
 
 namespace object_manipulator{
 
-class PlaceExecutor;
-class ReactivePlaceExecutor;
-class ReactiveGraspExecutor;
-class GraspExecutorWithApproach;
-class UnsafeGraspExecutor;
 class GraspMarkerPublisher;
 
-class GraspTesterFast;
-
 class GraspTester;
+class GraspTesterFast;
 class GraspPerformer;
 class PlaceTester;
 class PlacePerformer;
@@ -65,7 +59,7 @@ class PlacePerformer;
 class GraspContainer
 {
 private:
-  std::vector<object_manipulation_msgs::Grasp> grasps_;
+  std::vector<manipulation_msgs::Grasp> grasps_;
   boost::mutex mutex_;
 
 public:
@@ -75,25 +69,25 @@ public:
     return grasps_.size();
   }
 
-  std::vector<object_manipulation_msgs::Grasp> getGrasps(size_t start) 
+  std::vector<manipulation_msgs::Grasp> getGrasps(size_t start) 
   {
     boost::mutex::scoped_lock lock(mutex_);
-    std::vector<object_manipulation_msgs::Grasp> ret_grasps;
+    std::vector<manipulation_msgs::Grasp> ret_grasps;
     if (start >= grasps_.size()) return ret_grasps;
-    std::vector<object_manipulation_msgs::Grasp>::iterator it = grasps_.begin();
+    std::vector<manipulation_msgs::Grasp>::iterator it = grasps_.begin();
     for(size_t i=0; i<start; i++) it++;
     ret_grasps.insert(ret_grasps.begin(), it, grasps_.end());
     return ret_grasps;
   }
 
-  void addGrasps(const std::vector<object_manipulation_msgs::Grasp> &new_grasps)
+  void addGrasps(const std::vector<manipulation_msgs::Grasp> &new_grasps)
   {
     boost::mutex::scoped_lock lock(mutex_);
     if (new_grasps.size() <= grasps_.size())
     {
       ROS_WARN("No new grasps to add to container");
     }
-    std::vector<object_manipulation_msgs::Grasp>::const_iterator it = new_grasps.begin();
+    std::vector<manipulation_msgs::Grasp>::const_iterator it = new_grasps.begin();
     for (size_t i=0; i<grasps_.size(); i++) it++;
     grasps_.insert(grasps_.end(), it, new_grasps.end());
   }
@@ -114,7 +108,7 @@ public:
       grasps_.clear();
       return;
     }
-    std::vector<object_manipulation_msgs::Grasp>::iterator it = grasps_.begin();
+    std::vector<manipulation_msgs::Grasp>::iterator it = grasps_.begin();
     for(size_t i=0; i<n; i++) it++;
     grasps_.erase(grasps_.begin(), it);
   }
@@ -136,7 +130,7 @@ private:
   //! Wrapper for multiple grasp planning services with different names
   /*! Not really a wrapper for multiple arms, but a wrapper for multiple services
     with different names but fulfilling the same task.*/
-  MultiArmActionWrapper<object_manipulation_msgs::GraspPlanningAction> grasp_planning_actions_;
+  MultiArmActionWrapper<manipulation_msgs::GraspPlanningAction> grasp_planning_actions_;
 
   //! Publisher for grasp markers, or NULL if publishing is disabled
   GraspMarkerPublisher *marker_pub_;
@@ -153,21 +147,6 @@ private:
   PlaceTester* standard_place_tester_;
   PlacePerformer* standard_place_performer_;
   PlacePerformer* reactive_place_performer_;
-
-  //! Instance of the grasp executor with approach
-  GraspExecutorWithApproach* grasp_executor_with_approach_;
-
-  //! Instance of the reactive grasp executor
-  ReactiveGraspExecutor* reactive_grasp_executor_;
-
-  //! Instance of the executor used for grasping without considering collisions
-  UnsafeGraspExecutor* unsafe_grasp_executor_;
-
-  //! Instance of the executor used for placing objects
-  PlaceExecutor* place_executor_;
-
-  //! Instance of the executor used for reactive placing of objects
-  ReactivePlaceExecutor* reactive_place_executor_;
 
   //! The name of the service to be used by default for grasp planning on database objects
   std::string default_database_planner_;
@@ -205,11 +184,11 @@ public:
                      size_t tested_places, size_t total_places, size_t current_place);
 
   //! Saves the grasps provided as feedback by planning action
-  void graspPlanningFeedbackCallback(const object_manipulation_msgs::GraspPlanningFeedbackConstPtr &feedback);
+  void graspPlanningFeedbackCallback(const manipulation_msgs::GraspPlanningFeedbackConstPtr &feedback);
 
   //! Saves the grasps provided as result by planning action
   void graspPlanningDoneCallback(const actionlib::SimpleClientGoalState& state,
-                                 const object_manipulation_msgs::GraspPlanningResultConstPtr &result);
+                                 const manipulation_msgs::GraspPlanningResultConstPtr &result);
 
 };
 

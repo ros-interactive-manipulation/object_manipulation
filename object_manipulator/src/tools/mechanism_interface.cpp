@@ -1079,7 +1079,7 @@ void MechanismInterface::transformPointCloud(std::string target_frame,
   }
 }
 
-void MechanismInterface::convertGraspableObjectComponentsToFrame(object_manipulation_msgs::GraspableObject &object,
+void MechanismInterface::convertGraspableObjectComponentsToFrame(manipulation_msgs::GraspableObject &object,
                                                                  std::string frame_id)
 {
   if (!object.cluster.points.empty())
@@ -1221,7 +1221,7 @@ void MechanismInterface::detachAllObjectsFromGripper(std::string arm_name)
 }
 
 void MechanismInterface::handPostureGraspAction(std::string arm_name, 
-                    const object_manipulation_msgs::Grasp &grasp, int goal, float max_contact_force)
+                    const manipulation_msgs::Grasp &grasp, int goal, float max_contact_force)
 {
   object_manipulation_msgs::GraspHandPostureExecutionGoal posture_goal;
   posture_goal.grasp = grasp;
@@ -1244,7 +1244,7 @@ void MechanismInterface::handPostureGraspAction(std::string arm_name,
   ROS_DEBUG_NAMED("manipulation","Hand posture controller successfully achieved goal %d", goal);
 }
 
-bool MechanismInterface::graspPostureQuery(std::string arm_name, const object_manipulation_msgs::Grasp grasp)
+bool MechanismInterface::graspPostureQuery(std::string arm_name, const manipulation_msgs::Grasp grasp)
 {
   object_manipulation_msgs::GraspStatus query;
   query.request.grasp = grasp;
