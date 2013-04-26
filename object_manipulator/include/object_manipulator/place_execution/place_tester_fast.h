@@ -95,7 +95,7 @@ protected:
  public:
   //! Also adds a grasp marker at the pre-grasp location
   PlaceTesterFast(planning_environment::CollisionModels* cm = NULL,
-		  const std::string& plugin_name="pr2_arm_kinematics/PR2ArmKinematicsPlugin");
+		  const std::string& plugin_name="arm_kinematics_constraint_aware/KDLArmKinematicsPlugin");
 
   ~PlaceTesterFast();
 
