@@ -259,7 +259,7 @@ namespace object_manipulator {
 
         arm_navigation_msgs::Constraints emp;
         arm_navigation_msgs::ArmNavigationErrorCodes error_code;
-        return ik_solver_map_[arm_name]->interpolateIKDirectional(start_pose,
+        return ik_solver_map_[handDescription().armGroup(arm_name)]->interpolateIKDirectional(start_pose,
                                                                   direction,
                                                                   distance,
                                                                   emp,
@@ -300,7 +300,7 @@ namespace object_manipulator {
         getGroupLinks(handDescription().armGroup(pickup_goal.arm_name), arm_links);
 
         collision_space::EnvironmentModel::AllowedCollisionMatrix original_acm = cm->getCurrentAllowedCollisionMatrix();
-        cm->disableCollisionsForNonUpdatedLinks(pickup_goal.arm_name); /* disable collisions for all links not in the arm we are using */
+        cm->disableCollisionsForNonUpdatedLinks(handDescription().armGroup(pickup_goal.arm_name)); /* disable collisions for all links not in the arm we are using */
         collision_space::EnvironmentModel::AllowedCollisionMatrix group_disable_acm = cm->getCurrentAllowedCollisionMatrix();
         collision_space::EnvironmentModel::AllowedCollisionMatrix object_disable_acm = group_disable_acm;
         object_disable_acm.changeEntry(pickup_goal.collision_object_name, end_effector_links, true);
@@ -499,7 +499,7 @@ namespace object_manipulator {
 
         std_msgs::Header world_header;
         world_header.frame_id = cm->getWorldFrameId();
-        const std::vector<std::string>& joint_names = ik_solver_map_[pickup_goal.arm_name]->getJointNames();
+        const std::vector<std::string>& joint_names = ik_solver_map_[handDescription().armGroup(pickup_goal.arm_name)]->getJointNames();
 
         if(return_on_first_hit) {
 
@@ -530,7 +530,7 @@ namespace object_manipulator {
                 tf::poseTFToMsg(grasp_poses[i], grasp_geom_pose);
                 geometry_msgs::PoseStamped base_link_grasp_pose;
                 cm->convertPoseGivenWorldTransform(*state,
-                                                   ik_solver_map_[pickup_goal.arm_name]->getBaseName(),
+                                                   ik_solver_map_[handDescription().armGroup(pickup_goal.arm_name)]->getBaseName(),
                                                    world_header,
                                                    grasp_geom_pose,
                                                    base_link_grasp_pose);
@@ -541,7 +541,7 @@ namespace object_manipulator {
                 ROS_DEBUG_STREAM("X y z " << base_link_grasp_pose.pose.position.x << " "
                                 << base_link_grasp_pose.pose.position.y << " "
                                 << base_link_grasp_pose.pose.position.z);
-                if(!ik_solver_map_[pickup_goal.arm_name]->findConstraintAwareSolution(base_link_grasp_pose.pose,
+                if(!ik_solver_map_[handDescription().armGroup(pickup_goal.arm_name)]->findConstraintAwareSolution(base_link_grasp_pose.pose,
                                                                                       emp,
                                                                                       state,
                                                                                       solution,
@@ -722,7 +722,7 @@ namespace object_manipulator {
             tf::poseTFToMsg(grasp_poses[i], grasp_geom_pose);
             geometry_msgs::PoseStamped base_link_grasp_pose;
             cm->convertPoseGivenWorldTransform(*state,
-                                               ik_solver_map_[pickup_goal.arm_name]->getBaseName(),
+                                               ik_solver_map_[handDescription().armGroup(pickup_goal.arm_name)]->getBaseName(),
                                                world_header,
                                                grasp_geom_pose,
                                                base_link_grasp_pose);
@@ -730,7 +730,7 @@ namespace object_manipulator {
             arm_navigation_msgs::Constraints emp;
             sensor_msgs::JointState solution;
             arm_navigation_msgs::ArmNavigationErrorCodes error_code;
-            if(!ik_solver_map_[pickup_goal.arm_name]->findConstraintAwareSolution(base_link_grasp_pose.pose,
+            if(!ik_solver_map_[handDescription().armGroup(pickup_goal.arm_name)]->findConstraintAwareSolution(base_link_grasp_pose.pose,
                                                                                   emp,
                                                                                   state,
                                                                                   solution,
