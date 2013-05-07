@@ -138,6 +138,9 @@ private:
   //! Whether the order in which grasps are tried should be randomized first. Debug purposes.
   bool randomize_grasps_;
 
+  //! Name of the kinematics plugin used for fast grasp/place testing
+  std::string kinematics_plugin_name_;
+
   GraspTester* grasp_tester_with_approach_;
   GraspTester* unsafe_grasp_tester_;
   GraspTesterFast* grasp_tester_fast_;
