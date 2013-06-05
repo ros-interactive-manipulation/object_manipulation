@@ -23,5 +23,7 @@
   <depend stack="ros" /> <!--  -->
   <depend stack="sql_database" /> <!-- database_interface -->
   <depend stack="visualization" /> <!-- interactive_markers, rviz -->
+  <depend stack="household_objects_database_msgs" /> 
+  <depend stack="manipulation_msgs" /> 
 
 </stack>
