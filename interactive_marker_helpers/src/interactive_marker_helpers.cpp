@@ -597,6 +597,7 @@ visualization_msgs::InteractiveMarker makeGripperMarker( const char *name, const
   control.markers.push_back( mesh );
 
   control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+  control.always_visible = true;
   int_marker.controls.push_back( control );
 
   return int_marker;
@@ -685,6 +686,7 @@ visualization_msgs::InteractiveMarker makePosedMultiMeshMarker( const char * nam
 
     control.markers.clear();
     control.interaction_mode = button_only ? (visualization_msgs::InteractiveMarkerControl::BUTTON) : (visualization_msgs::InteractiveMarkerControl::MOVE_PLANE);
+    control.always_visible = true;
     for(size_t i = 0; i < mesh_poses.size(); i++)
     {
         visualization_msgs::Marker mesh;
@@ -723,6 +725,7 @@ visualization_msgs::InteractiveMarker makeFollowerMultiMeshMarker( const char * 
 
     control.markers.clear();
     control.interaction_mode = visualization_msgs::InteractiveMarkerControl::BUTTON;
+    control.always_visible = true;
     for(size_t i = 0; i < mesh_frames.size(); i++)
     {
         visualization_msgs::Marker mesh;
